@@ -1,0 +1,13 @@
+icon_file = "metadata/pokemon.ico"
+# name = "Craftlove"
+
+exclude_files = ["metadata/*"]
+
+version = "0.7"
+
+[conditional_compilation]
+enabled = true
+remove_assertions = true
+
+[env]
+FEATURE_A = true

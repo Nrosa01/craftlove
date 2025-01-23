@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Craftlove Build",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/main.js",
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "args": ["build", "./test"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Craftlove Build DEBUG",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/main.js",
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "args": ["build", "./test", "--debug"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Craftlove Run Release",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/main.js",
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "args": ["run", "./test", "--release"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Craftlove Run Debug",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/main.js",
+      "runtimeArgs": ["--nolazy", "--inspect"],
+      "args": ["run", "./test", "--debug"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}
