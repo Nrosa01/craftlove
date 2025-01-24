@@ -32,10 +32,10 @@ export async function loadConfig(projectPath) {
   }
 
   // Set defaults
-  const buildDirectory = config.build_directory || path.join(projectPath, 'build');
-  const version = config.version || '1.0.0';
-  const targets = config.targets || [process.platform];
-  const love_binaries = config.love_binaries || await findLovePath();
+  const buildDirectory =  path.join(projectPath, config.build_directory ?? 'build');
+  const version = config.version ?? '1.0.0';
+  const targets = config.targets ?? [process.platform];
+  const love_binaries = config.love_binaries ?? await findLovePath();
 
   return {
     ...config,
