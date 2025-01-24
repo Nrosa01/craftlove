@@ -8,6 +8,9 @@ import { processLuaFiles } from './luaProcessor.js';
 import { modifyMainLua } from './utils.js';
 import rcedit from 'rcedit';
 import AdmZip from 'adm-zip';
+import { minimatch } from 'minimatch';
+import globToRegExp from 'glob-to-regexp';
+
 const execAsync = util.promisify(exec);
 
 export async function buildProject(projectPath, config) {
@@ -38,31 +41,67 @@ export async function buildProject(projectPath, config) {
   logger.info('Filtering and copying game files...'); // Use logger
 
   // Always exclude craftlove.toml
-  config.love_files.push('!craftlove.toml');
+  config.love_files.push(`!./craftlove.toml`);
+  // Always exclude build directory
+  config.love_files.push(`!./${config.build_directory}/**`);
 
-  // Only returns true if all matches are true
-  function shouldIncludeInLove(file) {
-    return config.love_files.every((pattern) => pattern.test(file));
+  function processPatterns(patternsOriginal, currentDir) {
+    return patternsOriginal.map((pattern) => {
+      const isNegation = pattern.startsWith("!");
+      const normalizedPattern = isNegation ? pattern.slice(1) : pattern;
+  
+      // Replace "./" with the current directory
+      const finalPattern = normalizedPattern.startsWith("./")
+        ? normalizedPattern.replace("./", path.join(currentDir, "/"))
+        : normalizedPattern;
+  
+      return {
+        pattern: finalPattern,
+        isNegation,
+      };
+    });
   }
 
-  async function copyFilteredFiles(srcDir, destDir) {
+  function shouldBeIncluded(filePath, processedPatterns) {
+    let hasInclusionMatch = false;
+  
+    for (const { pattern, isNegation } of processedPatterns) {
+      if (minimatch(filePath, pattern)) {
+        if (isNegation) {
+          // If it's an exclusion pattern, return false immediately
+          return false;
+        } else {
+          hasInclusionMatch = true;
+        }
+      }
+    }
+  
+    // If no exclusion pattern matched, return whether an inclusion pattern matched
+    return hasInclusionMatch;
+  }
+
+  const parsedPatterns = processPatterns(config.love_files, projectPath);
+
+  // Only returns true if all matches are true
+
+
+  async function copyFilteredFiles(srcDir, destDir, parsedPatterns) {
     const entries = await fs.readdir(srcDir, { withFileTypes: true });
     for (const entry of entries) {
       const srcPath = path.join(srcDir, entry.name);
       const destPath = path.join(destDir, entry.name);
 
-      if (await shouldIncludeInLove(srcPath)) {
+      if (shouldBeIncluded(srcPath, parsedPatterns)) {
         if (entry.isDirectory()) {
           await fs.mkdir(destPath, { recursive: true });
-          await copyFilteredFiles(srcPath, destPath);
+          await copyFilteredFiles(srcPath, destPath, parsedPatterns);
         } else {
           await fs.copyFile(srcPath, destPath);
         }
       }
     }
   }
-
-  await copyFilteredFiles(projectPath, gameFilesPath);
+  await copyFilteredFiles(projectPath, gameFilesPath, parsedPatterns);
 
   await processLuaFiles(gameFilesPath, config);
 
@@ -89,6 +128,30 @@ export async function buildProject(projectPath, config) {
     } else {
       logger.warning(`Unsupported target: ${target}`); // Use logger
     }
+  }
+
+  // Handle archive files
+  if (config.archive_files) {
+    for (const [src, dest] of Object.entries(config.archive_files)) {
+      const srcPath = path.join(projectPath, src);
+      const destPath = path.join(artifactsPath, dest);
+      if (fs_sync.statSync(srcPath).isDirectory()) {
+        await fs.mkdir(destPath, { recursive: true });
+        await copyFilteredFiles(srcPath, destPath);
+      } else {
+        await fs.copyFile(srcPath, destPath);
+      }
+    }
+  }
+
+  // Clean up game directory if not keeping it
+  if (!config.keep_game_directory) {
+    await fs.rm(gameFilesPath, { recursive: true, force: true });
+  }
+
+  // Clean up artifacts if not keeping them
+  if (!config.keep_artifacts) {
+    await fs.rm(artifactsPath, { recursive: true, force: true });
   }
 
   logger.info('Build completed successfully!');
