@@ -24,6 +24,7 @@
   "dependencies": {
     "adm-zip": "^0.5.16",
     "commander": "^13.1.0",
+    "line-ending-corrector": "^1.0.1",
     "rcedit": "^4.0.1",
     "toml": "^3.0.0"
   }

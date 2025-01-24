@@ -1,6 +1,8 @@
-import fs from 'fs/promises';
+import fs_async from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import logger from './logger.js';
+import LineEndingCorrector from 'line-ending-corrector'
 
 /**
  * Converts a Lua expression to a JavaScript expression.
@@ -253,7 +255,16 @@ function processLine(line, env) {
  * @param {boolean} removeAssertions - Whether to remove assertions.
  */
 async function processFile(filePath, env, removeAssertions) {
-  const content = await fs.readFile(filePath, 'utf-8');
+  const readStream = fs.createReadStream(filePath, { encoding: 'utf-8' });
+
+  const modifiedStream = LineEndingCorrector.LineEndingCorrector.correctStream (readStream , { encoding: 'utf8', eolc: 'LF' });
+
+  let content = '';
+
+  for await (const chunk of modifiedStream) {
+    content += chunk;
+  }
+
   let processedContent = '';
 
   const removeAssertionsFromLine = (line) => {
@@ -301,7 +312,7 @@ async function processFile(filePath, env, removeAssertions) {
     processedContent += line + '\n';
   }
 
-  await fs.writeFile(filePath, processedContent.trim(), 'utf-8');
+  await fs_async.writeFile(filePath, processedContent.trim(), 'utf-8');
 }
 
 /**
@@ -318,7 +329,7 @@ export async function processLuaFiles(projectPath, config) {
   logger.info('Processing Lua files for conditional compilation...');
 
   const processDirectory = async (dir, env) => {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const entries = await fs_async.readdir(dir, { withFileTypes: true });
     const removeAssertions = config.conditional_compilation.remove_assertions || false;
 
     for (const entry of entries) {

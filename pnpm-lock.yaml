@@ -14,6 +14,9 @@ importers:
       commander:
         specifier: ^13.1.0
         version: 13.1.0
+      line-ending-corrector:
+        specifier: ^1.0.1
+        version: 1.0.1
       rcedit:
         specifier: ^4.0.1
         version: 4.0.1
@@ -30,6 +33,11 @@ packages:
   adm-zip@0.5.16:
     resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
     engines: {node: '>=12.0'}
+
+  coffeescript@2.7.0:
+    resolution: {integrity: sha512-hzWp6TUE2d/jCcN67LrW1eh5b/rSDKQK6oD6VMLlggYVUUFexgTH9z3dNYihzX4RMhze5FTUsUmOXViJKFQR/A==}
+    engines: {node: '>=6'}
+    hasBin: true
 
   commander@13.1.0:
     resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
@@ -54,6 +62,9 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  line-ending-corrector@1.0.1:
+    resolution: {integrity: sha512-uwHj4enSztzPuHdDCysaO94S2bNk8gfR2TKIzPYz2v3sDq/7L6aUxg4uZHnbDYFIdjjxhxcA/2YE7RCqpSbY+A==}
 
   path-key@3.1.1:
     resolution: {integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==}
@@ -87,6 +98,8 @@ snapshots:
 
   adm-zip@0.5.16: {}
 
+  coffeescript@2.7.0: {}
+
   commander@13.1.0: {}
 
   cross-spawn-windows-exe@1.2.0:
@@ -108,6 +121,10 @@ snapshots:
       is-docker: 2.2.1
 
   isexe@2.0.0: {}
+
+  line-ending-corrector@1.0.1:
+    dependencies:
+      coffeescript: 2.7.0
 
   path-key@3.1.1: {}
 
