@@ -330,7 +330,7 @@ export async function processLuaFiles(projectPath, config) {
 
   const processDirectory = async (dir, env) => {
     const entries = await fs_async.readdir(dir, { withFileTypes: true });
-    const removeAssertions = config.conditional_compilation.remove_assertions || false;
+    const removeAssertions = config.conditional_compilation.remove_assertions ?? true;
 
     for (const entry of entries) {
       const entryPath = path.join(dir, entry.name);

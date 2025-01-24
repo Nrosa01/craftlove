@@ -47,6 +47,12 @@ program
                 VERSION: config.version,
             };
 
+            // If options.debug and options.release are both set, remove from env so it defaults to whatever depending on the mode
+            if (options.debug && options.release) {
+                delete config.env.DEBUG;
+                delete config.env.RELEASE;
+            }
+
             if (mode === 'run') 
                 await runProject(projectPath, config, options);
             else if (mode === 'build') 

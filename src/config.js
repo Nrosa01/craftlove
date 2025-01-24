@@ -32,7 +32,7 @@ export async function loadConfig(projectPath) {
   }
 
   // Set defaults
-  const buildDirectory =  path.join(projectPath, config.build_directory ?? 'build');
+  const buildDirectory =  path.join(projectPath, config.build_directory ?? 'craftlove_build');
   const version = config.version ?? '1.0.0';
   const targets = config.targets ?? [process.platform];
   const love_binaries = config.love_binaries ?? await findLovePath();
