@@ -322,7 +322,7 @@ async function processFile(filePath, env, removeAssertions) {
  * @param {object} config - Build configuration.
  */
 export async function processLuaFiles(projectPath, config) {
-  if (!config.conditional_compilation || !config.conditional_compilation.enabled) {
+  if (!config.conditional_compilation.enabled) {
     return;
   }
 
@@ -330,7 +330,7 @@ export async function processLuaFiles(projectPath, config) {
 
   const processDirectory = async (dir, env) => {
     const entries = await fs_async.readdir(dir, { withFileTypes: true });
-    const removeAssertions = config.conditional_compilation.remove_assertions ?? true;
+    const removeAssertions = config.conditional_compilation.remove_assertions;
 
     for (const entry of entries) {
       const entryPath = path.join(dir, entry.name);

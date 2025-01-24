@@ -37,16 +37,12 @@ export async function buildProject(projectPath, config) {
   await fs.mkdir(gameFilesPath, { recursive: true });
   logger.info('Filtering and copying game files...'); // Use logger
 
-  const excludePatterns = config.exclude_files || [];
-  const includePatterns = config.include_files || [];
-
   // Always exclude craftlove.toml
-  excludePatterns.push('craftlove.toml');
+  config.love_files.push('!craftlove.toml');
 
-  async function shouldInclude(file) {
-    const excluded = excludePatterns.some((pattern) => new RegExp(pattern).test(file));
-    const included = includePatterns.some((pattern) => new RegExp(pattern).test(file));
-    return included || (!excluded && !file.startsWith('.') && !file.startsWith(config.build_directory));
+  // Only returns true if all matches are true
+  function shouldIncludeInLove(file) {
+    return config.love_files.every((pattern) => pattern.test(file));
   }
 
   async function copyFilteredFiles(srcDir, destDir) {
@@ -55,7 +51,7 @@ export async function buildProject(projectPath, config) {
       const srcPath = path.join(srcDir, entry.name);
       const destPath = path.join(destDir, entry.name);
 
-      if (await shouldInclude(srcPath)) {
+      if (await shouldIncludeInLove(srcPath)) {
         if (entry.isDirectory()) {
           await fs.mkdir(destPath, { recursive: true });
           await copyFilteredFiles(srcPath, destPath);
