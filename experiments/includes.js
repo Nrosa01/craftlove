@@ -2,22 +2,30 @@ import path from "path";
 import assert from "assert";
 import { minimatch } from "minimatch";
 
+// Function to normalize paths for minimatch (only on Windows)
+function normalizePathForMatch(filePath) {
+  return path.sep === "\\" ? filePath.replace(/\\/g, "/") : filePath;
+}
+
 // Function to check if a file should be included
 function shouldBeIncluded(filePath, processedPatterns) {
   let hasInclusionMatch = false;
+  const normalizedFilePath = normalizePathForMatch(filePath);
 
   for (const { pattern, isNegation } of processedPatterns) {
-    if (minimatch(filePath, pattern)) {
+    if (hasInclusionMatch && !isNegation) 
+      continue; // Skip if already included
+
+    const normalizedPattern = normalizePathForMatch(pattern);
+
+    if (minimatch(normalizedFilePath, normalizedPattern)) {
       if (isNegation) {
-        // If it's an exclusion pattern, return false immediately
         return false;
       } else {
         hasInclusionMatch = true;
       }
     }
   }
-
-  // If no exclusion pattern matched, return whether an inclusion pattern matched
   return hasInclusionMatch;
 }
 
@@ -27,10 +35,10 @@ function processPatterns(patternsOriginal, currentDir) {
     const isNegation = pattern.startsWith("!");
     const normalizedPattern = isNegation ? pattern.slice(1) : pattern;
 
-    // Replace "./" with the current directory
-    const finalPattern = normalizedPattern.startsWith("./")
-      ? normalizedPattern.replace("./", path.join(currentDir, "/"))
-      : normalizedPattern;
+    // Add currentDir only if the pattern does not start with *
+    const finalPattern = normalizedPattern.startsWith("*")
+      ? normalizedPattern // Leave patterns starting with * unchanged
+      : path.join(currentDir, normalizedPattern); // Add currentDir
 
     return {
       pattern: finalPattern,
@@ -40,36 +48,31 @@ function processPatterns(patternsOriginal, currentDir) {
 }
 
 // Test cases
-const currentDir = "src"; // Simulated current directory
+const currentDir = "test"; // Simulated current directory
 const files = [
-  "src/index.js",
-  "src/test/ex.txt",
-  "src/test/deep/nested/file.txt",
-  "src/docs/readme.md",
-  "src/docs/guide.md",
-  "assets/images/logo.png",
-  "assets/metadata.txt",
-];
+  "main.lua",
+  "craftlove.toml",
+  "metadata/file1.txt",
+  "metadata/file2.txt",
+  ".hiddenfile", // Simulated hidden file
+].map((file) => path.join(currentDir, file)); // Make file paths relative to currentDir
 
 const patternsOriginal = [
-  "src/**", // Include everything in src
-  "!src/test/**", // Exclude everything in src/test
-  "src/test/ex.txt", // Explicitly include this file
-  "!src/docs/readme.md", // Exclude a specific file
-  "assets/images/**", // Include everything in assets/images (but not assets/* itself)
+  "**/*", // Include all files
+  "!.*", // Exclude hidden files
+  "!metadata/**", // Exclude everything in metadata
+  "!craftlove.toml", // Exclude craftlove.toml
 ];
 
-const processedPatterns = processPatterns(patternsOriginal);
+const processedPatterns = processPatterns(patternsOriginal, currentDir);
 
 // Expected results
 const expectedResults = [
-  true, // src/index.js -> Included by src/**
-  false, // src/test/ex.txt -> Excluded by !src/test/**
-  false, // src/test/deep/nested/file.txt -> Excluded by !src/test/**
-  false, // src/docs/readme.md -> Excluded by !src/docs/readme.md
-  true, // src/docs/guide.md -> Included by src/**
-  true, // assets/images/logo.png -> Included by assets/images/**
-  false, // assets/metadata.txt -> Not included by any pattern
+  true, // test/main.lua -> Included by **/*
+  false, // test/craftlove.toml -> Excluded by !craftlove.toml
+  false, // test/metadata/file1.txt -> Excluded by !metadata/**
+  false, // test/metadata/file2.txt -> Excluded by !metadata/**
+  false, // test/.hiddenfile -> Excluded by !.*
 ];
 
 // Automated tests

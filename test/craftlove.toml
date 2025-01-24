@@ -6,7 +6,8 @@ icon_file = "metadata/pokemon.ico"
 love_files = [
     '**/*', # include all files
     '!**/.*', # don't include hidden files
-    '!./metadata/*', # don't include metadata
+    '!metadata/*', # don't include metadata
+    "!non_game_things/**", # don't include non_game_things
 ]
 
 version = "0.7"

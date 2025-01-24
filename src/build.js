@@ -9,7 +9,6 @@ import { modifyMainLua } from './utils.js';
 import rcedit from 'rcedit';
 import AdmZip from 'adm-zip';
 import { minimatch } from 'minimatch';
-import globToRegExp from 'glob-to-regexp';
 
 const execAsync = util.promisify(exec);
 
@@ -41,19 +40,20 @@ export async function buildProject(projectPath, config) {
   logger.info('Filtering and copying game files...'); // Use logger
 
   // Always exclude craftlove.toml
-  config.love_files.push(`!./craftlove.toml`);
+  config.love_files.push(`!craftlove.toml`);
   // Always exclude build directory
-  config.love_files.push(`!./${config.build_directory}/**`);
+  let buildDirectory = path.basename(config.build_directory);
+  config.love_files.push(`!${buildDirectory}/**`);
 
   function processPatterns(patternsOriginal, currentDir) {
     return patternsOriginal.map((pattern) => {
       const isNegation = pattern.startsWith("!");
       const normalizedPattern = isNegation ? pattern.slice(1) : pattern;
   
-      // Replace "./" with the current directory
-      const finalPattern = normalizedPattern.startsWith("./")
-        ? normalizedPattern.replace("./", path.join(currentDir, "/"))
-        : normalizedPattern;
+      // Add currentDir only if the pattern does not start with *
+      const finalPattern = normalizedPattern.startsWith("*")
+        ? normalizedPattern // Leave patterns starting with * unchanged
+        : path.join(currentDir, normalizedPattern); // Add currentDir
   
       return {
         pattern: finalPattern,
@@ -62,24 +62,31 @@ export async function buildProject(projectPath, config) {
     });
   }
 
+  function normalizePathForMatch(filePath) {
+    return path.sep === "\\" ? filePath.replace(/\\/g, "/") : filePath;
+  }
+  
+
   function shouldBeIncluded(filePath, processedPatterns) {
     let hasInclusionMatch = false;
+    const normalizedFilePath = normalizePathForMatch(filePath);
   
     for (const { pattern, isNegation } of processedPatterns) {
-      if (minimatch(filePath, pattern)) {
+      if (hasInclusionMatch && !isNegation) 
+        continue; // Skip if already included
+  
+      const normalizedPattern = normalizePathForMatch(pattern);
+  
+      if (minimatch(normalizedFilePath, normalizedPattern)) {
         if (isNegation) {
-          // If it's an exclusion pattern, return false immediately
           return false;
         } else {
           hasInclusionMatch = true;
         }
       }
     }
-  
-    // If no exclusion pattern matched, return whether an inclusion pattern matched
     return hasInclusionMatch;
   }
-
   const parsedPatterns = processPatterns(config.love_files, projectPath);
 
   // Only returns true if all matches are true
