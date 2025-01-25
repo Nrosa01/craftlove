@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 import util from 'util';
 import logger from './logger.js';
 import { processLuaFiles } from './luaProcessor.js';
-import { modifyMainLua, copyFilteredFiles, shouldBeIncluded, processPatterns } from './utils.js';
+import { modifyMainLua, copyFilteredFiles, processPatterns } from './utils.js';
 import rcedit from 'rcedit';
 import AdmZip from 'adm-zip';
 
@@ -38,6 +38,10 @@ export async function buildProject(projectPath, config) {
   await fs.mkdir(gameFilesPath, { recursive: true });
   logger.info('Filtering and copying game files...'); // Use logger
 
+  // main.lua and conf.lua are always included of course
+  config.love_files.push('main.lua');
+  config.love_files.push('conf.lua');
+  
   // Always exclude craftlove.toml
   config.love_files.push(`!craftlove.toml`);
   // Always exclude build directory
@@ -119,7 +123,7 @@ async function buildForWindows(loveFilePath, buildPath, config) {
     await rcedit(tempExecutable, config.windows.exe_metadata);
   }
 
-  const iconFile = config.icon_file ? path.join(config.project_path, config.icon_file) : path.join(config.love_binaries, 'game.ico');
+  const iconFile = config.icon_file ? path.join(config.project_path, config.icon_file) : path.join(config.windows.love_binaries, 'game.ico');
   await rcedit(tempExecutable, { 'icon': iconFile }).catch((error) => {
     throw error;
   });
