@@ -14,7 +14,10 @@ keep_game_directory = true
 
 keep_artifacts = true
 
-[conditional_compilation]
+[lua_processor.minify]
+enabled = true
+
+[lua_processor.conditional_compilation]
 enabled = true
 remove_assertions = true
 

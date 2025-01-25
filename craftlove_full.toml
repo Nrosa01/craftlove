@@ -61,7 +61,30 @@ keep_artifacts = false
 "baz/baz/licenses" = "licenses" # directory
 ".itch.toml" = ".itch.toml"
 
-[conditional_compilation]
+# This section defined optional luaProcessing options regarding minification.
+# If enabled, you can choose whether to rename variables and globals and solve math expressions.
+[lua_processor.minify]
+enabled = false # This is disabled by default.
+# Will rename local variables to shorter names. Disabled by default.
+rename_variables = false
+# Will rename global variables to shorter names. Disabled by default.
+rename_globals = false
+# Will solve math expressions if known at "compile time". Enabled by default.
+solve_math = true
+
+# Allows to beautify code. Useful only if you want your code to look
+# good after conditional compilation. It is disabled by default.
+# Beaufity is processed BEFORE minification. You shouldn't use both, it doesn't make sense
+[lua_processor.beautify]
+enabled = false # This is disabled by default.
+# Will rename local variables to shorter names. Disabled by default.
+rename_variables = false
+# Will rename global variables to shorter names. Disabled by default.
+rename_globals = false
+# Will solve math expressions if known at "compile time". Disabled by default.
+solve_math = false
+
+[lua_processor.conditional_compilation]
 # This enables conditional compilation. For more info check the README file
 # It is disabled by default.
 enabled = true

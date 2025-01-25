@@ -32,15 +32,29 @@ export async function loadConfig(projectPath) {
   }
 
   // Set defaults
-  
-  // if config.windows is undefined, define it
   config.windows = config.windows ?? {};
   config.keep_game_directory = config.keep_game_directory ?? false;
   config.keep_artifacts = config.keep_artifacts ?? false;
-  config.conditional_compilation = {
-    enabled: false,
-    remove_assertions: true,
-    ...config.conditional_compilation,
+  config.lua_processor = {
+    conditional_compilation: {
+      enabled: false,
+      remove_assertions: true,
+      ...config.lua_processor?.conditional_compilation,
+    },
+    minify: {
+      enabled: false,
+      rename_variables: false,
+      rename_globals: false,
+      solve_math: true,
+      ...config.lua_processor?.minify,
+    },
+    beautify: {
+      enabled: false,
+      rename_variables: false,
+      rename_globals: false,
+      solve_math: false,
+      ...config.lua_processor?.beautify,
+    },
   };
   config.archive_files = config.archive_files ?? {};
   config.love_files = config.love_files ?? ['**/*', '!**/.*']; // Default to all files except hidden files
@@ -48,12 +62,11 @@ export async function loadConfig(projectPath) {
   const buildDirectory = path.join(projectPath, config.build_directory ?? 'craftlove_build');
   const version = config.version ?? '1.0.0';
   const targets = config.targets ?? [process.platform];
-  config.windows = 
-  {
-    love_binaries : await findLovePath(),
-    archive_files : {},
+  config.windows = {
+    love_binaries: await findLovePath(),
+    archive_files: {},
     ...config.windows,
-  }
+  };
 
   config.artifacts = [].concat(config.artifacts ?? ['archive']).flat();
 

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import logger from './logger.js';
 import LineEndingCorrector from 'line-ending-corrector'
+import luamin from 'lua-format';
 
 /**
  * Converts a Lua expression to a JavaScript expression.
@@ -254,10 +255,10 @@ function processLine(line, env) {
  * @param {object} env - Environment variables for evaluation.
  * @param {boolean} removeAssertions - Whether to remove assertions.
  */
-async function processFile(filePath, env, removeAssertions) {
+async function processFile(filePath, env, removeAssertions, lua_processor_settings) {
   const readStream = fs.createReadStream(filePath, { encoding: 'utf-8' });
 
-  const modifiedStream = LineEndingCorrector.LineEndingCorrector.correctStream (readStream , { encoding: 'utf8', eolc: 'LF' });
+  const modifiedStream = LineEndingCorrector.LineEndingCorrector.correctStream(readStream, { encoding: 'utf8', eolc: 'LF' });
 
   let content = '';
 
@@ -312,7 +313,31 @@ async function processFile(filePath, env, removeAssertions) {
     processedContent += line + '\n';
   }
 
-  await fs_async.writeFile(filePath, processedContent.trim(), 'utf-8');
+  const beautify_settings = lua_processor_settings.beautify;
+  const beautify_parameters =
+  {
+    RenameVariables: beautify_settings.rename_variables,
+    RenameGlobals: beautify_settings.rename_globals,
+    SolveMath: beautify_settings.solve_math
+  }
+
+  if (beautify_settings.enabled) {
+    processedContent = luamin.Beautify(processedContent, beautify_parameters);
+  }
+
+  const minify_settings = lua_processor_settings.minify;
+  const minify_parameters =
+  {
+    RenameVariables: minify_settings.rename_variables,
+    RenameGlobals: minify_settings.rename_globals,
+    SolveMath: minify_settings.solve_math
+  }
+
+  if (minify_settings.enabled) {
+    processedContent = luamin.Minify(processedContent, minify_parameters);
+  }
+
+  await fs_async.writeFile(filePath, processedContent, 'utf-8');
 }
 
 /**
@@ -322,7 +347,7 @@ async function processFile(filePath, env, removeAssertions) {
  * @param {object} config - Build configuration.
  */
 export async function processLuaFiles(projectPath, config) {
-  if (!config.conditional_compilation.enabled) {
+  if (!config.lua_processor.conditional_compilation.enabled) {
     return;
   }
 
@@ -330,14 +355,14 @@ export async function processLuaFiles(projectPath, config) {
 
   const processDirectory = async (dir, env) => {
     const entries = await fs_async.readdir(dir, { withFileTypes: true });
-    const removeAssertions = config.conditional_compilation.remove_assertions;
+    const removeAssertions = config.lua_processor.conditional_compilation.remove_assertions;
 
     for (const entry of entries) {
       const entryPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         await processDirectory(entryPath, env);
       } else if (entry.isFile() && entry.name.endsWith('.lua')) {
-        await processFile(entryPath, env, removeAssertions);
+        await processFile(entryPath, env, removeAssertions, config.lua_processor);
       }
     }
   };

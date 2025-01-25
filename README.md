@@ -1,6 +1,6 @@
 # Craftlove
 
-A simple build system for Löve2D that includes additional compilation features. This project is **heavily** inspired by [makelove](https://github.com/pfirsich/makelove).
+A simple build system for Löve2D that includes additional compilation features. This project is **heavily** inspired by [makelove](https://github.com/pfirsich/makelove). It also allows to minify and beautify code on the "build" step.
 
 # Motivation
 
@@ -246,6 +246,14 @@ process(nextText)
 
 Really simple logic that for now seems to be working well.
 
+
+# Minify and Beautify
+
+This projects uses [luamin.js](https://github.com/Herrtt/luamin.js) from Herrtt. So it allows to both minify and beautify code. I didn't implement uglify as that's useless.
+
+Beautify is thought just to make your code indentation look good after the conditional compilation step, as that one won't adjust anything to make the code look readable, it just removes line where neccesary.
+
+Minify on the other hand can be useful if you want to get the maximum performance out of your code. It shouldn't be really necessary with LuaJit but hey, it's there if you want to use it.
 
 # Makelove compatibility
 

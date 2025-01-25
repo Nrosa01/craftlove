@@ -1,6 +1,6 @@
 {
   "name": "craftlove",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A simple build system for Löve2D that includes additional compilation features",
   "main": "src/main.js",
   "bin": {
@@ -28,6 +28,7 @@
     "adm-zip": "^0.5.16",
     "commander": "^13.1.0",
     "line-ending-corrector": "^1.0.1",
+    "lua-format": "^1.5.2",
     "minimatch": "^10.0.1",
     "rcedit": "^4.0.1",
     "toml": "^3.0.0"
