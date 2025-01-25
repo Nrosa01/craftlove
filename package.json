@@ -1,8 +1,11 @@
 {
   "name": "craftlove",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple build system for Löve2D that includes additional compilation features",
   "main": "src/main.js",
+  "bin": {
+    "craftlove": "src/main.js"
+  },
   "type": "module",
   "scripts": {
     "debug": "node --nolazy --inspect-brk ./src/main.js"
@@ -24,7 +27,6 @@
   "dependencies": {
     "adm-zip": "^0.5.16",
     "commander": "^13.1.0",
-    "glob-to-regexp": "^0.4.1",
     "line-ending-corrector": "^1.0.1",
     "minimatch": "^10.0.1",
     "rcedit": "^4.0.1",

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { program } from 'commander';
 import { loadConfig } from './config.js';
 import { buildProject } from './build.js';
