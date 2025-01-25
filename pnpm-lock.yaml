@@ -14,9 +14,15 @@ importers:
       commander:
         specifier: ^13.1.0
         version: 13.1.0
+      glob-to-regexp:
+        specifier: ^0.4.1
+        version: 0.4.1
       line-ending-corrector:
         specifier: ^1.0.1
         version: 1.0.1
+      minimatch:
+        specifier: ^10.0.1
+        version: 10.0.1
       rcedit:
         specifier: ^4.0.1
         version: 4.0.1
@@ -33,6 +39,12 @@ packages:
   adm-zip@0.5.16:
     resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
     engines: {node: '>=12.0'}
+
+  balanced-match@1.0.2:
+    resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  brace-expansion@2.0.1:
+    resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
 
   coffeescript@2.7.0:
     resolution: {integrity: sha512-hzWp6TUE2d/jCcN67LrW1eh5b/rSDKQK6oD6VMLlggYVUUFexgTH9z3dNYihzX4RMhze5FTUsUmOXViJKFQR/A==}
@@ -51,6 +63,9 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
+  glob-to-regexp@0.4.1:
+    resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
+
   is-docker@2.2.1:
     resolution: {integrity: sha512-F+i2BKsFrH66iaUFc0woD8sLy8getkwTwtOBjvs56Cx4CgJDeKQeqfz8wAYiSb8JOprWhHH5p77PbmYCvvUuXQ==}
     engines: {node: '>=8'}
@@ -65,6 +80,10 @@ packages:
 
   line-ending-corrector@1.0.1:
     resolution: {integrity: sha512-uwHj4enSztzPuHdDCysaO94S2bNk8gfR2TKIzPYz2v3sDq/7L6aUxg4uZHnbDYFIdjjxhxcA/2YE7RCqpSbY+A==}
+
+  minimatch@10.0.1:
+    resolution: {integrity: sha512-ethXTt3SGGR+95gudmqJ1eNhRO7eGEGIgYA9vnPatK4/etz2MEVDno5GMCibdMTuBMyElzIlgxMna3K94XDIDQ==}
+    engines: {node: 20 || >=22}
 
   path-key@3.1.1:
     resolution: {integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==}
@@ -98,6 +117,12 @@ snapshots:
 
   adm-zip@0.5.16: {}
 
+  balanced-match@1.0.2: {}
+
+  brace-expansion@2.0.1:
+    dependencies:
+      balanced-match: 1.0.2
+
   coffeescript@2.7.0: {}
 
   commander@13.1.0: {}
@@ -114,6 +139,8 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
+  glob-to-regexp@0.4.1: {}
+
   is-docker@2.2.1: {}
 
   is-wsl@2.2.0:
@@ -125,6 +152,10 @@ snapshots:
   line-ending-corrector@1.0.1:
     dependencies:
       coffeescript: 2.7.0
+
+  minimatch@10.0.1:
+    dependencies:
+      brace-expansion: 2.0.1
 
   path-key@3.1.1: {}
 

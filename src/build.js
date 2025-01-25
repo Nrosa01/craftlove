@@ -5,9 +5,10 @@ import { exec } from 'child_process';
 import util from 'util';
 import logger from './logger.js';
 import { processLuaFiles } from './luaProcessor.js';
-import { modifyMainLua } from './utils.js';
+import { modifyMainLua, copyFilteredFiles, shouldBeIncluded, processPatterns } from './utils.js';
 import rcedit from 'rcedit';
 import AdmZip from 'adm-zip';
+
 const execAsync = util.promisify(exec);
 
 export async function buildProject(projectPath, config) {
@@ -38,31 +39,14 @@ export async function buildProject(projectPath, config) {
   logger.info('Filtering and copying game files...'); // Use logger
 
   // Always exclude craftlove.toml
-  config.love_files.push('!craftlove.toml');
+  config.love_files.push(`!craftlove.toml`);
+  // Always exclude build directory
+  let buildDirectory = path.basename(config.build_directory);
+  config.love_files.push(`!${buildDirectory}/**`);
 
-  // Only returns true if all matches are true
-  function shouldIncludeInLove(file) {
-    return config.love_files.every((pattern) => pattern.test(file));
-  }
+  const parsedPatterns = processPatterns(config.love_files, projectPath);
 
-  async function copyFilteredFiles(srcDir, destDir) {
-    const entries = await fs.readdir(srcDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const srcPath = path.join(srcDir, entry.name);
-      const destPath = path.join(destDir, entry.name);
-
-      if (await shouldIncludeInLove(srcPath)) {
-        if (entry.isDirectory()) {
-          await fs.mkdir(destPath, { recursive: true });
-          await copyFilteredFiles(srcPath, destPath);
-        } else {
-          await fs.copyFile(srcPath, destPath);
-        }
-      }
-    }
-  }
-
-  await copyFilteredFiles(projectPath, gameFilesPath);
+  await copyFilteredFiles(projectPath, gameFilesPath, parsedPatterns);
 
   await processLuaFiles(gameFilesPath, config);
 
@@ -91,7 +75,30 @@ export async function buildProject(projectPath, config) {
     }
   }
 
+  // Clean up game directory if not keeping it
+  if (!config.keep_game_directory) {
+    await fs.rm(gameFilesPath, { recursive: true, force: true });
+  }
+
+  // Clean up artifacts if not keeping them
+  if (!config.keep_artifacts) {
+    await fs.rm(artifactsPath, { recursive: true, force: true });
+  }
+
   logger.info('Build completed successfully!');
+}
+
+async function handleArchiveFiles(projectPath, destPath, archiveFiles) {
+  for (const [src, dest] of Object.entries(archiveFiles)) {
+    const srcPath = path.join(projectPath, src);
+    const finalDestPath = path.join(destPath, dest);
+    if (fs_sync.statSync(srcPath).isDirectory()) {
+      await fs.mkdir(finalDestPath, { recursive: true });
+      await copyFilteredFiles(srcPath, finalDestPath, processPatterns(['**/*'], srcPath));
+    } else {
+      await fs.copyFile(srcPath, finalDestPath);
+    }
+  }
 }
 
 async function buildForWindows(loveFilePath, buildPath, config) {
@@ -100,7 +107,7 @@ async function buildForWindows(loveFilePath, buildPath, config) {
 
   logger.info('Building Windows executable...');
 
-  const loveExecutable = path.join(config.love_binaries || '.', 'love.exe');
+  const loveExecutable = path.join(config.windows.love_binaries || '.', 'love.exe');
   const tempExecutable = path.join(windowsPath, 'temp_love.exe');
   const outputExecutable = path.join(windowsPath, `${config.name || 'game'}.exe`);
 
@@ -128,6 +135,10 @@ async function buildForWindows(loveFilePath, buildPath, config) {
     }
   }
 
+  // Handle archive files
+  const combinedArchiveFiles = { ...config.archive_files, ...config.windows?.archive_files };
+  await handleArchiveFiles(config.project_path, windowsPath, combinedArchiveFiles);
+
   // Remove the temporary executable
   await fs.unlink(tempExecutable);
 }
@@ -146,6 +157,10 @@ async function buildForLinux(loveFilePath, buildPath, config) {
   const appImageExecutable = path.join(linuxPath, `${config.name || 'game'}-linux.AppImage`);
   await fs.copyFile(appImagePath, appImageExecutable);
   await execAsync(`chmod +x "${appImageExecutable}"`);
+
+  // Handle archive files
+  // Here someone should add linux-specific archive files
+  await handleArchiveFiles(config.project_path, linuxPath, config.archive_files);
 
   logger.info('AppImage created:', appImageExecutable); // Use logger
 }

@@ -2,12 +2,17 @@ icon_file = "metadata/pokemon.ico"
 # name = "Craftlove"
 
 love_files = [
-    '.*', # include all files
+    '**/*', # include all files
     '!**/.*', # don't include hidden files
-    '!metadata/*' # don't include metadata
+    '!metadata/*', # don't include metadata
+    "!non_game_things/**", # don't include non_game_things
 ]
 
 version = "0.7"
+
+keep_game_directory = true
+
+keep_artifacts = true
 
 [conditional_compilation]
 enabled = true

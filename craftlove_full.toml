@@ -7,16 +7,16 @@
 name = "Amazing Game"
 
 # These are the files included in the .love file.
-# The patterns are evaluated in the order they are specified. They are JS regex patterns.
-# The following is the default if the current working directory is in a git repository:
-# By default all files are included
+# The patterns are evaluated in the order they are specified. 
+# These are regex similar to the ones used in .gitignore but inverse
+# By default everything you match there will be included in the .love file unless it's prefixed with a "!"
+# If any file matches any inclusion pattern and no exclusion pattern, it will be included.
+# By default all files are included except hidden giles
 # I recommend first adding the files you want to include and then excluding the ones you don't want.
 love_files = [
     '.*', # include all files
     '!**/.*', # don't include hidden files
 ]
-# If the current directory is not in a git repository, love_files will use all files
-# in the current working directory except hidden files and the build directory.
 
 
 # vvvvvvvvvvvv You may want to specify these too vvvvvvvvvvvv
@@ -46,6 +46,7 @@ icon_file = "icon.png"
 keep_game_directory = false
 
 # After the final executable have been created, the temporary build directory will be deleted unless this parameter is true
+# When this is false the game directory will also be deleted.
 # By default it is false
 keep_artifacts = false
 
