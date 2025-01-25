@@ -1,8 +1,6 @@
 icon_file = "metadata/pokemon.ico"
 # name = "Craftlove"
 
-# These are the files included in the .love file.
-# The patterns are evaluated in the order they are specified. These are regex similar to the ones used in .gitignore
 love_files = [
     '**/*', # include all files
     '!**/.*', # don't include hidden files
@@ -12,9 +10,9 @@ love_files = [
 
 version = "0.7"
 
-keep_game_directory = false
+keep_game_directory = true
 
-keep_artifacts = false
+keep_artifacts = true
 
 [conditional_compilation]
 enabled = true

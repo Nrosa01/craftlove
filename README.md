@@ -40,6 +40,10 @@ craftlove <path> <mode> [options]
 - `--verbose`: Displays detailed informational messages.
 - `--errors-only`: Displays only error messages.
 
+## Configuration file
+
+Same as with makelove, here you can define a `craftlove.toml` file in the root of your game directory to set many settings you can't set with the CLI. Check [craftlove_full.toml](./craftlove_full.toml) in order to see the arguments that are supported as of now and how they work
+
 ## Example Usage
 
 ```bash

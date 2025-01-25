@@ -5,10 +5,9 @@ import { exec } from 'child_process';
 import util from 'util';
 import logger from './logger.js';
 import { processLuaFiles } from './luaProcessor.js';
-import { modifyMainLua } from './utils.js';
+import { modifyMainLua, copyFilteredFiles, shouldBeIncluded, processPatterns } from './utils.js';
 import rcedit from 'rcedit';
 import AdmZip from 'adm-zip';
-import { minimatch } from 'minimatch';
 
 const execAsync = util.promisify(exec);
 
@@ -45,69 +44,8 @@ export async function buildProject(projectPath, config) {
   let buildDirectory = path.basename(config.build_directory);
   config.love_files.push(`!${buildDirectory}/**`);
 
-  function processPatterns(patternsOriginal, currentDir) {
-    return patternsOriginal.map((pattern) => {
-      const isNegation = pattern.startsWith("!");
-      const normalizedPattern = isNegation ? pattern.slice(1) : pattern;
-  
-      // Add currentDir only if the pattern does not start with *
-      const finalPattern = normalizedPattern.startsWith("*")
-        ? normalizedPattern // Leave patterns starting with * unchanged
-        : path.join(currentDir, normalizedPattern); // Add currentDir
-  
-      return {
-        pattern: finalPattern,
-        isNegation,
-      };
-    });
-  }
-
-  function normalizePathForMatch(filePath) {
-    return path.sep === "\\" ? filePath.replace(/\\/g, "/") : filePath;
-  }
-  
-
-  function shouldBeIncluded(filePath, processedPatterns) {
-    let hasInclusionMatch = false;
-    const normalizedFilePath = normalizePathForMatch(filePath);
-  
-    for (const { pattern, isNegation } of processedPatterns) {
-      if (hasInclusionMatch && !isNegation) 
-        continue; // Skip if already included
-  
-      const normalizedPattern = normalizePathForMatch(pattern);
-  
-      if (minimatch(normalizedFilePath, normalizedPattern)) {
-        if (isNegation) {
-          return false;
-        } else {
-          hasInclusionMatch = true;
-        }
-      }
-    }
-    return hasInclusionMatch;
-  }
   const parsedPatterns = processPatterns(config.love_files, projectPath);
 
-  // Only returns true if all matches are true
-
-
-  async function copyFilteredFiles(srcDir, destDir, parsedPatterns) {
-    const entries = await fs.readdir(srcDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const srcPath = path.join(srcDir, entry.name);
-      const destPath = path.join(destDir, entry.name);
-
-      if (shouldBeIncluded(srcPath, parsedPatterns)) {
-        if (entry.isDirectory()) {
-          await fs.mkdir(destPath, { recursive: true });
-          await copyFilteredFiles(srcPath, destPath, parsedPatterns);
-        } else {
-          await fs.copyFile(srcPath, destPath);
-        }
-      }
-    }
-  }
   await copyFilteredFiles(projectPath, gameFilesPath, parsedPatterns);
 
   await processLuaFiles(gameFilesPath, config);
@@ -137,20 +75,6 @@ export async function buildProject(projectPath, config) {
     }
   }
 
-  // Handle archive files
-  if (config.archive_files) {
-    for (const [src, dest] of Object.entries(config.archive_files)) {
-      const srcPath = path.join(projectPath, src);
-      const destPath = path.join(artifactsPath, dest);
-      if (fs_sync.statSync(srcPath).isDirectory()) {
-        await fs.mkdir(destPath, { recursive: true });
-        await copyFilteredFiles(srcPath, destPath);
-      } else {
-        await fs.copyFile(srcPath, destPath);
-      }
-    }
-  }
-
   // Clean up game directory if not keeping it
   if (!config.keep_game_directory) {
     await fs.rm(gameFilesPath, { recursive: true, force: true });
@@ -164,13 +88,26 @@ export async function buildProject(projectPath, config) {
   logger.info('Build completed successfully!');
 }
 
+async function handleArchiveFiles(projectPath, destPath, archiveFiles) {
+  for (const [src, dest] of Object.entries(archiveFiles)) {
+    const srcPath = path.join(projectPath, src);
+    const finalDestPath = path.join(destPath, dest);
+    if (fs_sync.statSync(srcPath).isDirectory()) {
+      await fs.mkdir(finalDestPath, { recursive: true });
+      await copyFilteredFiles(srcPath, finalDestPath, processPatterns(['**/*'], srcPath));
+    } else {
+      await fs.copyFile(srcPath, finalDestPath);
+    }
+  }
+}
+
 async function buildForWindows(loveFilePath, buildPath, config) {
   const windowsPath = path.join(buildPath, 'windows');
   await fs.mkdir(windowsPath, { recursive: true });
 
   logger.info('Building Windows executable...');
 
-  const loveExecutable = path.join(config.love_binaries || '.', 'love.exe');
+  const loveExecutable = path.join(config.windows.love_binaries || '.', 'love.exe');
   const tempExecutable = path.join(windowsPath, 'temp_love.exe');
   const outputExecutable = path.join(windowsPath, `${config.name || 'game'}.exe`);
 
@@ -198,6 +135,10 @@ async function buildForWindows(loveFilePath, buildPath, config) {
     }
   }
 
+  // Handle archive files
+  const combinedArchiveFiles = { ...config.archive_files, ...config.windows?.archive_files };
+  await handleArchiveFiles(config.project_path, windowsPath, combinedArchiveFiles);
+
   // Remove the temporary executable
   await fs.unlink(tempExecutable);
 }
@@ -216,6 +157,10 @@ async function buildForLinux(loveFilePath, buildPath, config) {
   const appImageExecutable = path.join(linuxPath, `${config.name || 'game'}-linux.AppImage`);
   await fs.copyFile(appImagePath, appImageExecutable);
   await execAsync(`chmod +x "${appImageExecutable}"`);
+
+  // Handle archive files
+  // Here someone should add linux-specific archive files
+  await handleArchiveFiles(config.project_path, linuxPath, config.archive_files);
 
   logger.info('AppImage created:', appImageExecutable); // Use logger
 }
