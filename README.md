@@ -60,6 +60,10 @@ This repo includes a test folder with a main.lua and a craftlove.toml. This is t
 function love.draw()
     local x, y = 200, 200
     local baseSize = 100
+    local str = "something" ---#if_inline CRAFT_LOVE.DEBUG
+
+    ---#if_below CRAFT_LOVE.DEBUG
+    local str2 = "something else"
 
     if CRAFT_LOVE.DEBUG then
         love.graphics.setColor(1, 0, 0)
@@ -95,13 +99,14 @@ If we make a release build (release by default) with FEATURE_A enabled and check
 ```lua
 _G.CRAFT_LOVE = {
   FEATURE_A = true,
-  VERSION = 0.7,
+  VERSION = "0.7",
   RELEASE = true,
 }
 
 function love.draw()
     local x, y = 200, 200
     local baseSize = 100
+
 
         love.graphics.setColor(0, 1, 0)
                 love.graphics.points(x, y, x + baseSize, y, x + baseSize / 2, y + baseSize)
@@ -171,6 +176,36 @@ Now, returning to the design decision. I really didn't have much options. I firs
 This way the user can even use >, <= and any operator to not only distinc between debug and release but also between versions.
 
 This system has its flaws, you have to use a CRAFT_LOVE global object that won't existe until using craftlove, which makes lua projects that uses this slightly dependand. Of course you can add the CRAFT_TABLE globala table yourself, but what I mean is that this is not a perfect solution. Also, as it uses normal if-else from lua, an external user won't be aware of this feature. But I consider this better than defininf a special syntaxt that would break compatibility with normal lua code.
+
+On the other hand, what would happen if you have something this?
+
+```lua
+local settings = {
+    thing = "sdfasfa",
+    debugOnlySetting = false
+}
+```
+
+Imagine that you don't want that field defined in a release build. Well, in this case it's not important, it won't affect runtime as you probably only acess that inside an "if CRAFT_LOVE.DEBUG" block, but in case you want to get rid of some little things, I ended up allowing to use 2 special comments:
+
+```lua
+local settings = {
+    thing = "sdfasfa",
+    debugOnlySetting = false ---#if_inline CRAFT_LOVE.DEBUG
+}
+```
+
+```lua
+local settings = {
+    thing = "sdfasfa",
+    ---#if_below CRAFT_LOVE.DEBUG
+    debugOnlySetting = false
+}
+```
+
+These ones remove the current line or the below one when the expression is false, are kept otherwise. You can use the same kind of expressions as in a if-else statement. Why did I allow these two ways? Well, the inline one is nice because it doesn't use an extra line, on the other hand, it restricts you because you can't use a normal comment and the special one on the same line, for that case I added the #if_below just to cover that. And I know that the name might be a little confusing and ambiguos, but no better one came to my head.
+
+This allows to have more fine-grained control while still using lua syntaxt so you can still run projects that use this craftlove feature with a normal lua or luajit interpreter.
 
 ## How to use
 

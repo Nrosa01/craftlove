@@ -1,6 +1,10 @@
 function love.draw()
     local x, y = 200, 200
     local baseSize = 100
+    local str = "something" ---#if_inline CRAFT_LOVE.DEBUG
+
+    ---#if_below CRAFT_LOVE.DEBUG
+    local str2 = "something else"
 
     if CRAFT_LOVE.DEBUG then
         love.graphics.setColor(1, 0, 0)

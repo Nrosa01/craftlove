@@ -280,13 +280,13 @@ async function processFile(filePath, env, removeAssertions, lua_processor_settin
     let line = lines[i];
 
     // Handle inline comments
-    const ifInlineMatch = line.match(/^\s*---#if_inline (.+)/);
+    const ifInlineMatch = line.match(/^(.*)---#if_inline (.+)/);
     const ifBelowMatch = line.match(/^\s*---#if_below (.+)/);
 
     if (ifInlineMatch) {
-      const expr = ifInlineMatch[1];
+      const expr = ifInlineMatch[2];
       if (evaluateLuaExpression(expr, env)) {
-        processedContent += line.replace(ifInlineMatch[0], '') + '\n';
+        processedContent += ifInlineMatch[1] + '\n';
       }
       continue;
     }
