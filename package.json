@@ -1,6 +1,6 @@
 {
   "name": "craftlove",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple build system for Löve2D that includes additional compilation features",
   "main": "src/main.js",
   "bin": {

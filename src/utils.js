@@ -13,11 +13,14 @@ export async function modifyMainLua(mainLuaPath, env) {
     let craftloveTable = "_G.CRAFT_LOVE = {\n";
 
     for (const [key, value] of Object.entries(env)) {
-        craftloveTable += `  ${key.toUpperCase()} = ${value},\n`;
+        if (typeof value === 'string') {
+            craftloveTable += `  ${key.toUpperCase()} = "${value}",\n`;
+        } else {
+            craftloveTable += `  ${key.toUpperCase()} = ${value},\n`;
+        }
     }
 
     craftloveTable += "}\n\n";
-
 
     mainLuaContent = craftloveTable + mainLuaContent;
 
